@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-ckyjw!(p^pnjb-6n=y$0s!v0uj-y4yrlzc1ba8z!u79d1s8y=6
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["8861-119-161-98-68.ngrok-free.app"]
+ALLOWED_HOSTS = []
 
 
 # Application definition
@@ -53,6 +53,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+CORS_ALLOWED_ORIGINS = ['*']
 
 ROOT_URLCONF = 'spwise.urls'
 
