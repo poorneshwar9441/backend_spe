@@ -16,7 +16,7 @@ def create_user_profile(request):
         user = User(user_name = user_name,email = email,password = password)
         user.save()
         print("here")
-        return Response({ "id" : user.id, "name" : user.user_name, "amount" :user.amount,"email":user.email})
+        return Response({ "id" : user.id, "name" : user.user_name,"email":user.email})
     except Exception as e:
         print(e)
         return Response({"error":"Bad data"})
@@ -47,70 +47,59 @@ def login_user(request):
         print(e)
         return Response({"error" : "Bad data requested"})
 
+
+#{'user_id' : '', group_name : ''}; 
 @api_view(['POST'])
-def api_login(request):
-    user_name = request.data['user_name']
-    #password = request.data['password']
-
+def create_group(request):
+    user_id = request.data['user_id']
+    group_name = request.data['group_name']
+    
     try:
-        user = User.objects.filter(user_name = user_name)
-        if(len(user)):
-            return Response({"id" : user[0].id,"name" : user[0].user_name,"balance":user[0].amount})
-
-        else:
-            us = User(user_name = user_name,password = "OAUTH2.0")
-            us.save()
-
-            return Response({ "id" : us.id, "name" : us.user_name, "amount" :us.amount,"email":us.email})
-
-
+        user = User.objects.filter(id = user_id); 
+        group = Group(name = group_name); 
+        group.save(); 
+        group.members.add(user[0]); 
+        
+        return Response({'Group creation scucees' : f'Group id {group.id}'})
+        
+        
     except Exception as e:
         print(e)
         return Response({"error" : "Bad data requested"})
 
-
 @api_view(['POST'])
 def return_groups(request):
-    user_name = request.data['user_name']
-
+    user_id = request.data['user_id']
+    
     try:
-        user = User.objects.filter(user_name = user_name)
-        groups = groups.objects.filter(user_name = user_name)
-
-        return Response({id:,group.id});
-
+        dic = {} 
+        groups_part_of = Group.objects.filter(members__id = user_id)
+        
+        for i in groups_part_of:
+            dic[i.id] = {
+                'id' : f'{i.id}',
+                'name': f'{i.name}'
+            }
+            
+        
+        return Response(dic) 
+    
     except Exception as e:
         print(e)
-
-
+        return Response({"error" : "bad data requested"})
+    
 @api_view(['POST'])
 def create_expense(request):
-    des = request.data['desc']
-    amount = request.data['amount']
-    payer_name = request.data['payer']
-    participants = request.data['participants']
+    payer = request.data['payer_name']
+    
 
 @api_view(['POST'])
-def simplify(request):
-    user_id = request.data['user_id']
-    group_id = request.data['group_id']
-
-    am = []
- 
-    for u in user.objects.get(id = user_id):
-        am.append(u.balance)
-
-
-    return Response({100:ok})
+def return_expense(request):
+    pass
+    
 
     
-   
 
-@api_view(['POST'])
-def create_group(request):
-    if request.method == 'POST':
-        serializer = GroupSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    
+    
