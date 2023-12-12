@@ -87,12 +87,32 @@ def return_groups(request):
     except Exception as e:
         print(e)
         return Response({"error" : "bad data requested"})
+
+#update the group with new user
+@api_view(['POST'])  
+def update_group(request):
+    user_name = request.data['user_name']
+    group_id = request.data['group_id']
+
+    try:
+        group = Group.objects.filter(id = group_id)
+        user = User.objects.filter(user_name = user_name)
+        
+        group[0].members.add(user[0])
+        
+        return Response({"success" : "user added sucessfully"})
+        
+    except Exception as e:
+        print(e)
+        return Response({"error" : "bad data requested"})
+        
     
 @api_view(['POST'])
 def create_expense(request):
     payer = request.data['payer_name']
     
-
+def update_expense(request):
+    pass
 @api_view(['POST'])
 def return_expense(request):
     pass
