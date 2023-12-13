@@ -80,8 +80,6 @@ def return_groups(request):
                 'id' : f'{i.id}',
                 'name': f'{i.name}'
             }
-            
-        
         return Response(dic) 
     
     except Exception as e:
@@ -105,11 +103,54 @@ def update_group(request):
     except Exception as e:
         print(e)
         return Response({"error" : "bad data requested"})
-        
-    
+
+
 @api_view(['POST'])
 def create_expense(request):
-    payer = request.data['payer_name']
+    payer = request.data['payer']
+    group_id = request.data['group_id']
+    participants = request.data['participants']
+    val = request.data['amount']
+    
+    user = User.objects.filter(user_name = payer)
+    group = Group.objects.filter(id = group_id)
+    amount = amount.objects.filter(group__id = group_id, user__id = user[0].id)
+    if(len(amount)):
+        amount[0].value += amount[0].value + float(val)
+        amount[0].save()
+    else:
+        new_amount = amount(user = user,group = group)
+        new_amount.value = float(val)
+        new_amount.save()
+        
+        
+    for p in participants:
+        user = User.objects.filter(user_name = p)
+        amount = amount.objects.filter(group__id = group_id, user__id = user[0].id)
+        if(len(amount)):
+            amount[0].value -= amount[0].value + float(val)  
+        else:
+            new_amount = amount(user = user,group = group)
+            new_amount.value = -1*float(val)
+            new_amount.save()
+            
+            
+            
+    return Response()
+            
+        
+        
+        
+    
+    
+    
+    
+    print(participants)
+
+#def simplify
+@api_view(['POST'])
+def simplify(request):
+    group_id = request.data['group_id']
     
 def update_expense(request):
     pass

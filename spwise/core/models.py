@@ -14,7 +14,6 @@ class Group(models.Model):
 class Expense(models.Model):
     description = models.CharField(max_length=255)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
-    date = models.DateField()
     payer = models.ForeignKey(User, related_name='expenses_paid', on_delete=models.CASCADE)
     participants = models.ManyToManyField(User, related_name='expenses_participated')
     group = models.ForeignKey(Group,on_delete = models.CASCADE,default = None)
@@ -23,3 +22,4 @@ class Expense(models.Model):
 class amount(models.Model):
     user = models.ForeignKey(User,on_delete = models.CASCADE)
     group = models.ForeignKey(Group,on_delete = models.CASCADE)
+    value = models.DecimalField(max_digits = 10,decimal_places = 2)
