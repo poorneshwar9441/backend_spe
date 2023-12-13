@@ -1,7 +1,8 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from .models import User, Expense, Group
+from .models import User, Expense, Group,amount
+from decimal import Decimal
 
 @api_view(['POST'])
 def create_user_profile(request):
@@ -103,64 +104,147 @@ def update_group(request):
     except Exception as e:
         print(e)
         return Response({"error" : "bad data requested"})
+    
+@api_view(['POST'])
+def simplify(request):
+    pass
 
 
+# format {'payer' : , 'group_id' : , 'participants' : , 'amount' , des : ''}
+#{"payer" : "name" , "group_id" : "2" , "participants" : ["name", "pass"], "des" : "for fun", "amount": "250"}
 @api_view(['POST'])
 def create_expense(request):
+
     payer = request.data['payer']
     group_id = request.data['group_id']
     participants = request.data['participants']
+
     val = request.data['amount']
-    
-    user = User.objects.filter(user_name = payer)
-    group = Group.objects.filter(id = group_id)
-    amount = amount.objects.filter(group__id = group_id, user__id = user[0].id)
-    if(len(amount)):
-        amount[0].value += amount[0].value + float(val)
-        amount[0].save()
-    else:
-        new_amount = amount(user = user,group = group)
-        new_amount.value = float(val)
-        new_amount.save()
-        
-        
-    for p in participants:
-        user = User.objects.filter(user_name = p)
-        amount = amount.objects.filter(group__id = group_id, user__id = user[0].id)
-        if(len(amount)):
-            amount[0].value -= amount[0].value + float(val)  
+    des  = request.data['des']
+
+    try:
+        user = User.objects.filter(user_name = payer)
+        group = Group.objects.filter(id = group_id)
+        actual_amo = amount.objects.filter(group__id = group_id, user__id = user[0].id)
+        if(len(actual_amo)):
+            actual_amo[0].value += Decimal(val)
+            actual_amo[0].save()
         else:
-            new_amount = amount(user = user,group = group)
-            new_amount.value = -1*float(val)
+            new_amount = amount(user = user[0],group = group[0])
+            new_amount.value = Decimal(val)
             new_amount.save()
             
-            
-            
-    return Response()
-            
-        
-        
-        
-    
-    
-    
-    
-    print(participants)
+        for p in participants:
+            user = User.objects.filter(user_name = p)
+            actual_amo = amount.objects.filter(group__id = group_id, user__id = user[0].id)
+            if(len(actual_amo)):
+                actual_amo[0].value -= Decimal(val)/len(participants)
+            else:
+                print("expense exists already")
+                new_amount = amount(user = user[0],group = group[0])
+                new_amount.value = -1*Decimal(val)/(len(participants))
+                new_amount.save()
 
-#def simplify
+        e = Expense(description = des,amount = val,payer = user[0],group = group[0])
+        e.save()
+        for p in participants:
+            user  = User.objects.filter(user_name = p)
+            e.participants.add(user[0])
+            e.save()
+
+        return Response({"transaction created sucessfully" : {
+            "id" : e.id
+        }})
+
+    except Exception as e:
+        print(e)
+        return Response({"error" : "Bad data requested"})
+
+#{"group_id" : ""}
+#example {"group_id" : "2"}
+@api_view(['POST']) 
+def return_expenses(request):
+    group_id = request.data['group_id']
+    try:
+        dic = {} 
+        groups_part_of = Expense.objects.filter(group__id = group_id)
+        
+        for i in groups_part_of:
+            dic[i.id] = {
+                'id' : f'{i.id}',
+                'name': f'{i.description}'
+            }
+        return Response(dic) 
+    
+    except Exception as e:
+        print(e)
+        return Response({"error" : "bad data requested"})
+
+def simplify_balances(net_balances):
+    simplified_debts = []
+
+    while net_balances:
+        # Find non-zero balances
+        non_zero_balances = {k: v for k, v in net_balances.items() if v != 0}
+
+        if not non_zero_balances:
+            break  # Exit the loop if all balances are zero
+
+        payer = min(non_zero_balances, key=non_zero_balances.get)
+        payee = max(non_zero_balances, key=non_zero_balances.get)
+
+        amount_settled = min(abs(net_balances[payer]), abs(net_balances[payee]))
+
+        # Ensure debtor and creditor are not the same
+        if payer != payee:
+            simplified_debts.append({"debtor": payer, "creditor": payee, "amount": amount_settled})
+
+            net_balances[payer] += amount_settled
+            net_balances[payee] -= amount_settled
+
+            # Remove zero balances
+            net_balances = {k: v for k, v in net_balances.items() if v != 0}
+        else:
+            break
+
+    return simplified_debts
+
+
+
+
+
+#example {group_id : 14}
 @api_view(['POST'])
 def simplify(request):
+    print("Here")
+    print(request.data)
     group_id = request.data['group_id']
-    
-def update_expense(request):
-    pass
-@api_view(['POST'])
-def return_expense(request):
-    pass
-    
+    try:
+        group =  Group.objects.filter(id = group_id)
+        group_members = group[0].members.all()
+        dic = {}
 
-    
+        for mem in group_members:
 
-    
-    
-    
+            a = amount.objects.filter(user__id = mem.id,group__id = group[0].id)
+            if(len(a)):
+                dic[mem.user_name] = a[0].value
+            else:
+                dic[mem.user_name] = 0
+
+        result = simplify_balances(dic)
+
+
+        count = 1
+        json_dic = {}
+        for val in result:
+            json_dic[count] = val
+            count += 1
+
+
+        return Response(json_dic)
+
+
+    except Exception as e:
+        print(e)
+        return Response({"Error" : "Bad data Requested"})

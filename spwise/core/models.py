@@ -1,7 +1,6 @@
 from django.db import models
 
 
-
 class User(models.Model):
     user_name = models.CharField(max_length = 255)
     email = models.CharField(max_length = 255)
@@ -22,4 +21,4 @@ class Expense(models.Model):
 class amount(models.Model):
     user = models.ForeignKey(User,on_delete = models.CASCADE)
     group = models.ForeignKey(Group,on_delete = models.CASCADE)
-    value = models.DecimalField(max_digits = 10,decimal_places = 2)
+    value = models.DecimalField(max_digits = 10,decimal_places = 2,default = 0)

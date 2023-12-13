@@ -6,6 +6,9 @@ from .views import create_group
 from .views import return_groups
 from .views import update_group
 from .views import create_expense
+from .views import return_expenses
+from .views import simplify
+
 urlpatterns = [
     path('create_user',create_user_profile),
     path('login_user',login_user),
@@ -13,4 +16,6 @@ urlpatterns = [
     path('return_groups',return_groups),
     path('update_group',update_group),
     path('create_expense',create_expense),
+    path('return_expenses',return_expenses),
+    path('simplify',simplify)
 ]
