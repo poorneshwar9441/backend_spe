@@ -209,10 +209,6 @@ def simplify_balances(net_balances):
 
     return simplified_debts
 
-
-
-
-
 #example {group_id : 14}
 @api_view(['POST'])
 def simplify(request):
