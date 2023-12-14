@@ -17,10 +17,10 @@ def create_user_profile(request):
         user = User(user_name = user_name,email = email,password = password)
         user.save()
         print("here")
-        return Response({ "id" : user.id, "name" : user.user_name,"email":user.email})
+        return Response({"success":"true", "id" : user.id, "name" : user.user_name,"email":user.email})
     except Exception as e:
         print(e)
-        return Response({"error":"Bad data"})
+        return Response({"success":"false","error":"Bad data"})
 
 @api_view(['POST'])    
 def get_user(request):
@@ -39,10 +39,11 @@ def login_user(request):
 
     try:
         user = User.objects.filter(user_name = user_name,password = password)
+        print(user)
         if(len(user)):
-            return Response({"id" : user[0].id,"name" : user[0].user_name,"balance":user[0].amount})
+            return Response({"success": "true","id" : user[0].id,"name" : user[0].user_name,"balance":user[0].amount})
         else:
-            return Response({"id" : "-1"})
+            return Response({"success": "false","id" : "-1"})
 
     except Exception as e:
         print(e)
@@ -98,7 +99,6 @@ def update_group(request):
         user = User.objects.filter(user_name = user_name)
         
         group[0].members.add(user[0])
-        
         return Response({"success" : "user added sucessfully"})
         
     except Exception as e:
@@ -114,14 +114,21 @@ def simplify(request):
 #{"payer" : "name" , "group_id" : "2" , "participants" : ["name", "pass"], "des" : "for fun", "amount": "250"}
 @api_view(['POST'])
 def create_expense(request):
-
+    print("In backend create expense")
     payer = request.data['payer']
     group_id = request.data['group_id']
     participants = request.data['participants']
 
     val = request.data['amount']
     des  = request.data['des']
+    print("Before participant",participants)
+    temp = []
+    for i in participants:
+        if(isinstance(i,str)):
+            temp.append(i)
 
+    participants = temp
+    print("after participant",participants)
     try:
         user = User.objects.filter(user_name = payer)
         group = Group.objects.filter(id = group_id)
@@ -166,15 +173,15 @@ def create_expense(request):
 def return_expenses(request):
     group_id = request.data['group_id']
     try:
-        dic = {} 
+        lst = [] 
         groups_part_of = Expense.objects.filter(group__id = group_id)
-        
         for i in groups_part_of:
-            dic[i.id] = {
+            lst.append( {
                 'id' : f'{i.id}',
-                'name': f'{i.description}'
-            }
-        return Response(dic) 
+                'name': f'{i.description}',
+                'amount': f'{i.amount}'
+            })
+        return Response(lst) 
     
     except Exception as e:
         print(e)
@@ -209,17 +216,30 @@ def simplify_balances(net_balances):
 
     return simplified_debts
 
+@api_view(['POST'])
+def get_participant(request):
+    group_id = request.data['group_id']
+    try:
+        group =  Group.objects.filter(id = group_id)
+        group_members = group[0].members.all()
+        lst = []
+        for mem in group_members:
+            lst.append({'id':mem.id,'name': mem.user_name, 'email': mem.email})
+        return Response(lst)
+    except:
+        return(Response({"error" : "bad data requested"}))
+
+    
 #example {group_id : 14}
 @api_view(['POST'])
 def simplify(request):
     print("Here")
-    print(request.data)
     group_id = request.data['group_id']
     try:
         group =  Group.objects.filter(id = group_id)
         group_members = group[0].members.all()
         dic = {}
-
+        
         for mem in group_members:
 
             a = amount.objects.filter(user__id = mem.id,group__id = group[0].id)
@@ -231,13 +251,12 @@ def simplify(request):
         result = simplify_balances(dic)
 
 
-        count = 1
-        json_dic = {}
+        count = 0
+        json_dic = []
         for val in result:
-            json_dic[count] = val
-            count += 1
+            json_dic.append(val)
 
-
+        print(json_dic)        
         return Response(json_dic)
 
 

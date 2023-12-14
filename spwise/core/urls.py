@@ -7,6 +7,7 @@ from .views import return_groups
 from .views import update_group
 from .views import create_expense
 from .views import return_expenses
+from .views import get_participant
 from .views import simplify
 
 urlpatterns = [
@@ -17,5 +18,7 @@ urlpatterns = [
     path('update_group',update_group),
     path('create_expense',create_expense),
     path('return_expenses',return_expenses),
-    path('simplify',simplify)
+    path('simplify',simplify),
+    path('get_participants',get_participant)
+
 ]
