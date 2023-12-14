@@ -35,9 +35,10 @@ pipeline{
 
             steps {
                script{
-                    steps{
+                    
+                         sh '/usr/local/bin/docker login -u "gamergrange9@gmail.com" -p "docker_user"'
                          sh '/usr/local/bin/docker build -t '+backend_registry+':v1.0 .'
-                    }
+                
                 } 
               }
 
