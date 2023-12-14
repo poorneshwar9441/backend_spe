@@ -58,7 +58,7 @@ pipeline{
         
     stage('Stage 5: Clean docker images'){
             steps{
-                 sh '/usr/local/bin/docker rmi $registry:v1.0'
+                 sh '/usr/local/bin/docker rmi $backend_registry:v1.0'
             }
     }
 
